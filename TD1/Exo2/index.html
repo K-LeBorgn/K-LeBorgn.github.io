@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TD1Exo2</title>
+</head>
+<body>
+    <!--EXO 2 : sa position lon, lat, altitude, la précision de mesure, sa vitesse, la date à partir du time stamp-->
+    <div> Exo 2 </div>
+    <div id="longitude"></div>
+    <div id="latitude"></div>
+    <div id="altitude"></div>
+    <div id="précision"></div>
+    <div id="vitesse"></div>
+    <div id="date"></div>
+    <button id="btn_exo2">Obtenir la géolocalisation</button>
+
+    <script>
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        function success(pos) {
+            var crd = pos.coords;
+            var date = new Date();
+            $("#longitude").html("Longitude : " + crd.longitude);
+            $("#latitude").html("Latitude : " + crd.latitude);
+            $("#altitude").html("Altitude : " + crd.altitude);
+            $("#précision").html("Précision : " + crd.accuracy);
+            $("#vitesse").html("Vitesse : " + crd.speed);
+            $("#date").html(date.toDateString());
+        }
+
+        function error(err) {
+            console.warn(`ERREUR (${err.code}): ${err.message}`);
+        }
+
+        document.getElementById('btn_exo2').addEventListener('click', function() {
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        });
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+</body>
+</html>
