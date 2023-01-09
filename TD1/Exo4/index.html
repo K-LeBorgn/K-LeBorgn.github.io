@@ -76,7 +76,7 @@
                 log(`ctx.lineTo( ${ touches[i].pageX }, ${ touches[i].pageY } );`);
                 ctx.lineTo(touches[i].pageX, touches[i].pageY);
                 ctx.lineWidth = 4;
-                ctx.strokeStyle = color;
+                ctx.strokeStyle = 'black';
                 ctx.stroke();
 
                 ongoingTouches.splice(idx, 1, copyTouch(touches[i]));  // on met à jour le point de contact
