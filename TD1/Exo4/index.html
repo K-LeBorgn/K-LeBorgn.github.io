@@ -35,7 +35,7 @@
             const touches = evt.changedTouches;
 
             for (let i = 0; i < touches.length; i++) {
-                console.log(`touchstart: ${i}.`);
+                $("#type_event").html('touchstart:' + i);
                 ongoingTouches.push(copyTouch(touches[i]));
                 const color = colorForTouch(touches[i]);
                 console.log(`Couleur de cette touche avec l'identifiant ${ touches[i].identifier } = ${ color }`);
@@ -46,5 +46,6 @@
             }
         }
     </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </body>
 </html>
