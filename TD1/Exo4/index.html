@@ -31,8 +31,8 @@
         function handleStart(evt) {
             evt.preventDefault();
             $("#type_event").html('touchstart');
-            $("#x").html(evt.touches.clientX);
-            $("#y").html(evt.touches.clientY);
+            $("#x").html(evt.touches[0].clientX);
+            $("#y").html(evt.touches[0].clientY);
             /*const el = document.getElementById('canvas');
             const ctx = el.getContext('2d');
             const touches = evt.changedTouches;
