@@ -38,8 +38,11 @@
             console.warn(`ERREUR (${err.code}): ${err.message}`);
         }
 
-        document.getElementById('btn_exo2').addEventListener('click', function() {
+        /*document.getElementById('btn_exo2').addEventListener('click', function() {
             navigator.geolocation.getCurrentPosition(success, error, options);
+        });*/
+        document.getElementById('btn_exo2').addEventListener('click', function() {
+            navigator.geolocation.watchPosition(success, error, options);
         });
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>

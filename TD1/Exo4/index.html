@@ -11,7 +11,7 @@
     <div> TD1 Exo 4 </div>
     <div id="position"></div>
     <div id="type_event"></div>
-    <canvas id="canvas" width="600" height="600" style="border:solid black 1px;">
+    <canvas id="canvas" width="300" height="250" style="border:solid black 1px;">
         Votre navigateur ne prend pas en charge l'élément canvas.
       </canvas>
 
@@ -22,55 +22,27 @@
             el.addEventListener('touchend', handleEnd);
             el.addEventListener('touchcancel', handleCancel);
             el.addEventListener('touchmove', handleMove);
-            log('Initialisation.');
-            }
+            console.log('Initialisation.');
+        }
 
         document.addEventListener('DOMContentLoaded', startup);
 
         function handleStart(evt) {
             evt.preventDefault();
-            log('touchstart.');
+            console.log('touchstart.');
             const el = document.getElementById('canvas');
             const ctx = el.getContext('2d');
             const touches = evt.changedTouches;
 
             for (let i = 0; i < touches.length; i++) {
-                log(`touchstart: ${i}.`);
+                console.log(`touchstart: ${i}.`);
                 ongoingTouches.push(copyTouch(touches[i]));
                 const color = colorForTouch(touches[i]);
-                log(`Couleur de cette touche avec l'identifiant ${ touches[i].identifier } = ${ color }`);
+                console.log(`Couleur de cette touche avec l'identifiant ${ touches[i].identifier } = ${ color }`);
                 ctx.beginPath();
                 ctx.arc(touches[i].pageX, touches[i].pageY, 4, 0, 2 * Math.PI, false);  // un cercle au début
                 ctx.fillStyle = color;
                 ctx.fill();
-            }
-        }
-
-        function handleMove(evt) {
-            evt.preventDefault();
-            const el = document.getElementById('canvas');
-            const ctx = el.getContext('2d');
-            const touches = evt.changedTouches;
-
-            for (let i = 0; i < touches.length; i++) {
-                const color = colorForTouch(touches[i]);
-                const idx = ongoingTouchIndexById(touches[i].identifier);
-
-                if (idx >= 0) {
-                log(`progression du point de touche ${ idx }`);
-                ctx.beginPath();
-                log(`ctx.moveTo( ${ ongoingTouches[idx].pageX }, ${ ongoingTouches[idx].pageY } );`);
-                ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
-                log(`ctx.lineTo( ${ touches[i].pageX }, ${ touches[i].pageY } );`);
-                ctx.lineTo(touches[i].pageX, touches[i].pageY);
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = color;
-                ctx.stroke();
-
-                ongoingTouches.splice(idx, 1, copyTouch(touches[i]));  // on met à jour le point de contact
-                } else {
-                log(`impossible de déterminer le point de contact à faire avancer`);
-                }
             }
         }
     </script>
