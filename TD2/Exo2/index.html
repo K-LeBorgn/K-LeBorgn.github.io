@@ -60,8 +60,8 @@
 
             var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
             
-            var distance = getDistanceFromLatLonInKm(latlngs[0][0],latlngs[0][1],latlngs[1][0], latlngs[1][1]);
-            polyline.bindPopup("Distance : " + distance + " km");
+            var distance = Math.round(getDistanceFromLatLonInKm(latlngs[0][0],latlngs[0][1],latlngs[1][0], latlngs[1][1]));
+            polyline.bindPopup("Distance : " + distance + " km").openPopup();
 
             // zoom the map to the polyline
             map.fitBounds(polyline.getBounds());
