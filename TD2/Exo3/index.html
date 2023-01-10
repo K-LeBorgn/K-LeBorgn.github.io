@@ -3,9 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
     <title>TD2Exo3</title>
 </head>
 <body>
+    <div id="map" style="height : 500px; width: 700px;"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+    crossorigin=""></script>
+    <script type="text/javascript" src="https://stamen-maps.a.ssl.fastly.net/js/tile.stamen.js?v1.3.0"></script>
+    <script>
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        function success(pos) {
+            var crd = pos.coords;
+
+            var layer = new L.StamenTileLayer("terrain");
+            var map = new L.Map("map", {
+                center: new L.LatLng(43.703, 7.266  ),
+                zoom: 12
+            });
+            map.addLayer(layer);
+            fetch("https://api.mapbox.com/directions/v5/mapbox/driving/7.266%2C43.703%3B5.3699525%2C43.2961743?alternatives=true&geometries=geojson&language=en&overview=simplified&steps=true&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA")
+                .then(function (res) {
+                    if (res.ok) {
+                        return res.json();
+                    }
+                })
+                .then(function (value) {
+                    console.log(value.waypoints)
+                    L.geoJSON(value.routes[0].geometry).addTo(map);
+                    var start_marker = L.marker([value.waypoints[0].location[1], value.waypoints[0].location[0]]).addTo(map);
+                    var end_marker = L.marker([value.waypoints[1].location[1], value.waypoints[1].location[0]]).addTo(map);
+                    start_marker.bindPopup(value.waypoints[0].name)
+                    end_marker.bindPopup(value.waypoints[1].name)
+                });
+        }
+
+        function error(err) {
+            console.warn(`ERREUR (${err.code}): ${err.message}`);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        });
+    </script>
+
     
 </body>
 </html>
