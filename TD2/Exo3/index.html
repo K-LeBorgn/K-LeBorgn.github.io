@@ -31,14 +31,14 @@
                 zoom: 12
             });
             map.addLayer(layer);
-            fetch("https://api.mapbox.com/directions/v5/mapbox/driving/7.266%2C43.703%3B5.3699525%2C43.2961743?alternatives=true&geometries=geojson&language=en&overview=simplified&steps=true&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA")
+            fetch("https://api.mapbox.com/directions/v5/mapbox/driving/7.266%2C43.703%3B5.3699525%2C43.2961743?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA")
                 .then(function (res) {
                     if (res.ok) {
                         return res.json();
                     }
                 })
                 .then(function (value) {
-                    console.log(value.waypoints)
+                    console.log(value)
                     L.geoJSON(value.routes[0].geometry).addTo(map);
                     var start_marker = L.marker([value.waypoints[0].location[1], value.waypoints[0].location[0]]).addTo(map);
                     var end_marker = L.marker([value.waypoints[1].location[1], value.waypoints[1].location[0]]).addTo(map);
