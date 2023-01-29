@@ -3,9 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
     <title>TD3Exo1</title>
 </head>
 <body>
-    
+    <img id="myimage" src="image.jpeg" alt="Image de montagne prarie ciel" style="display:none">
+    <canvas id="mycanvas" width="600" height="400"></canvas>
+    <script>
+        window.onload = function() {
+            var img = document.getElementById("myimage");
+            var canvas = document.getElementById("mycanvas");
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img,10,10,600,400);
+            // mur
+            ctx.fillStyle = 'orange';
+            ctx.fillRect(100,250,100,100);
+            // porte
+            ctx.fillStyle= 'brown';
+            ctx.fillRect(120,300,25,50);
+            // toit
+            ctx.fillStyle= 'red';
+            ctx.beginPath();
+            ctx.moveTo(100, 250);
+            ctx.lineTo(150, 200);
+            ctx.lineTo(200, 250);
+            ctx.fill();
+            // soleil
+            ctx.fillStyle= 'yellow';
+            ctx.beginPath();
+            ctx.arc(100, 75, 50, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+    </script>
+
+    <svg width="1420" height="900">
+        <!-- ciel -->
+        <rect class="bleu" id="ciel" width="1420" height="500" />
+        <!-- herbe -->
+        <rect x="0" y="500" width="1420" height="400" style="fill:rgb(25, 130, 27);" />
+        <!-- 1ere montagne -->
+        <polygon points="400,0 200,500 600,500" style="fill:brown;"></polygon>
+        <!-- 2eme montagne -->
+        <polygon points="700,100 500,500 900,500" style="fill:brown;"></polygon>
+        <!-- 3eme montagne -->
+        <polygon points="1100,100 900,500 1300,500" style="fill:brown;"></polygon>
+        <!-- mur -->
+        <rect x="200" y="450" width="250" height="250" style="fill:orange;" />
+        <!-- toit -->
+        <polygon points="200,450 450,450 325,350" style="fill:red;"></polygon>
+        <!-- porte -->
+        <rect class="marron" id="porte" x="220" y="530" width="100" height="170" />
+        <!-- soleil -->
+        <circle id="soleil" cx="200" cy="150" r="100"  stroke-width="3" fill="yellow" />
+    </svg>
+
+    <script>
+        var soleil = document.getElementById("soleil");
+        var porte = document.getElementById("porte");
+        var ciel = document.getElementById("ciel");
+
+        soleil.addEventListener('click', () => {
+            if(ciel.classList.contains('bleu')){
+                ciel.classList.remove('bleu')
+                ciel.classList.add('gris')
+            }
+            else{
+                ciel.classList.remove('gris')
+                ciel.classList.add('bleu')
+            }
+        });
+
+        porte.addEventListener('mouseover', () => {
+            if(porte.classList.contains('marron')){
+                porte.classList.remove('marron')
+                porte.classList.add('gris')
+            }
+            else{
+                porte.classList.remove('gris')
+                porte.classList.add('marron')
+            }
+        });
+
+    </script>
 </body>
 </html>
