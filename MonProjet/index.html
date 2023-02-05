@@ -36,7 +36,7 @@
             pitch: 50,
             bearing: 0,
 
-            centerCross: true,
+            centerCross: false,
             doubleClickZoom: false,
             baseLayer: new maptalks.TileLayer('tile', {
                 urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
@@ -60,6 +60,7 @@
             scene.add(light);
 
             addLines();
+            addPoints();
         };
 
         const sceneConfig = {
@@ -79,11 +80,11 @@
             // opacity: 0.8,
             transparent: true
         });
+        
         function addLines() {
             fetch('./voies-principales-nca.geojson').then(function (res) {
                 return res.text();
             }).then(function (geojson) {
-
                 var lineStrings = maptalks.GeoJSON.toGeometry(geojson);
                 var timer = 'generate line time';
                 console.time(timer);
@@ -93,7 +94,7 @@
                     //console.log(road_name)
 
                     //tooltip test
-                    line.setToolTip(road_name, {
+                    line.setToolTip("Rue : " + road_name, {
                         showTimeout: 0,
                         eventsPropagation: true,
                         dx: 10
@@ -131,6 +132,120 @@
                 threeLayer.config('animation', true);
             })
         }
+        function createTexture(fillStyle) {
+            const size = 16;
+            const canvasDom = document.createElement('canvas');
+            canvasDom.width = size;
+            canvasDom.height = size;
+            const ctx = canvasDom.getContext('2d');
+            ctx.fillStyle = fillStyle || 'white';
+            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            const texture = new THREE.Texture(canvasDom);
+            texture.needsUpdate = true; //使用贴图时进行更新
+            return texture;
+        }
+
+        function createMaterial(fillStyle) {
+            return new THREE.PointsMaterial({
+                // size: 10,
+                sizeAttenuation: false,
+                // color: 'red',
+                // alphaTest: 0.5,
+                // vertexColors: THREE.VertexColors,
+                //  transparent: true
+                // color: 0xffffff,
+                size: 10,
+                transparent: true, //使材质透明
+                blending: THREE.AdditiveBlending,
+                depthTest: true, //深度测试关闭，不消去场景的不可见面
+                depthWrite: false,
+                map: createTexture(fillStyle)
+            });
+        }
+
+        var line_material = new THREE.LineBasicMaterial({
+            linewidth: 1,
+            color: 0xff0000,
+            // opacity: 0.8,
+            transparent: true
+        });
+
+        function addPoints() {
+            var points = []
+            var bus_lines = []  
+            const point_material = createMaterial();
+
+            fetch('./lignes_reseau_urbain.geojson').then(function (res) {
+                return res.json();
+            }).then(function (geojson) {
+                console.log(geojson);
+                for(const stop of geojson.features){
+                    //console.log(stop)
+                    if(stop.geometry.type != "LineString"){
+                        const point = threeLayer.toPoint(stop.geometry.coordinates, { height: 0 }, point_material);
+                        // tooltip test
+                        point.setToolTip("Arrêt : " + stop.properties.name, {
+                            showTimeout: 0,
+                            eventsPropagation: true,
+                            dx: 10
+                        });
+
+                        //infowindow test
+                        point.setInfoWindow({
+                            content: stop.properties.information,
+                            title: stop.properties.name,
+                            animationDuration: 0,
+                            autoOpenOn: false
+                        });
+                        //event test
+                        /*['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
+                            point.on(eventType, function (e) {
+                                console.log(e.type, e);
+                                // console.log(this);
+                                if (e.type === 'mouseout') {
+                                    this.setSymbol(material);
+                                }
+                                if (e.type === 'mouseover') {
+                                    this.setSymbol(highlightmaterial);
+                                }
+                            });
+                        });*/
+                        points.push(point);
+                    }
+                    else{
+                        const road_name = stop.properties.route_long_name;
+                        var line = threeLayer.toLine(stop, { altitude: 0 }, line_material);
+                        //console.log(road_name)
+
+                        //tooltip test
+                        line.setToolTip("Ligne : " + road_name, {
+                            showTimeout: 0,
+                            eventsPropagation: true,
+                            dx: 10
+                        });
+
+                        //infowindow test
+                        line.setInfoWindow({
+                            content: road_name,
+                            title: 'Nom de ligne',
+                            animationDuration: 0,
+                            autoOpenOn: false
+                        });
+
+                        bus_lines.push(line)
+                    }
+                }
+                threeLayer.addMesh(points);
+                threeLayer.addMesh(bus_lines);
+
+                //initGui();
+                //animation();
+            })
+        }
+        
+            
+
 
         /*function initGui() {
             var params = {
