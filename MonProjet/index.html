@@ -1,62 +1,73 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="utf-8">
-  <title>Boussole en Three.js</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.122.0/build/three.js"></script>
+    <meta charset="utf-8">
+    <title>Boussole en Three.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.122.0/build/three.js"></script>
 </head>
+
 <body>
-  <div id="container"></div>
-  <script>
-    // Initialiser le moteur de rendu et la scène
-    var renderer = new THREE.WebGLRenderer();
-    var scene = new THREE.Scene();
+    <div id="container"></div>
+    <script>
+        // Initialiser le moteur de rendu et la scène
+        var renderer = new THREE.WebGLRenderer();
+        var scene = new THREE.Scene();
 
-    // Initialiser la caméra
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
+        // Initialiser la caméra
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
 
-    // Initialiser la sphère
-    var sphere = new THREE.SphereGeometry(1, 32, 32);
-    var material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-    var sphereMesh = new THREE.Mesh(sphere, material);
-    scene.add(sphereMesh);
+        // Initialiser la sphère
+        var sphere = new THREE.SphereGeometry(1, 32, 32);
+        var material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+        var sphereMesh = new THREE.Mesh(sphere, material);
+        scene.add(sphereMesh);
 
-    // Initialiser les axes X, Y et Z
-    var axes = new THREE.AxesHelper(2);
-    scene.add(axes);
+        // Initialiser les axes X, Y et Z
+        var axes = new THREE.AxesHelper(2);
+        scene.add(axes);
 
-    // Initialiser la boussole
-    var northIndicator = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 2, 0xff0000);
-    scene.add(northIndicator);
-    var eastIndicator = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 2, 0x00ff00);
-    scene.add(eastIndicator);
+        // Initialiser la boussole
+        var northIndicator = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 2, 0xff0000);
+        scene.add(northIndicator);
+        var eastIndicator = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 2, 0x00ff00);
+        scene.add(eastIndicator);
 
-    // Définir la taille du rendu
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById("container").appendChild(renderer.domElement);
+        // Définir la taille du rendu
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById("container").appendChild(renderer.domElement);
 
-    // Effectuer le rendu de la scène
-    renderer.render(scene, camera);
+        // Effectuer le rendu de la scène
+        renderer.render(scene, camera);
 
-    // Vérifier si l'API de géolocalisation est disponible
-    if ('ondeviceorientationabsolute' in window) {
-      // Obtenir la direction du téléphone
-      window.addEventListener('deviceorientationabsolute', function(event) {
-        var alpha = event.alpha;
-        var beta = event.beta;
-        var gamma = event.gamma;
+        // Vérifier si l'API de géolocalisation est disponible
+        if ('ondeviceorientationabsolute' in window) {
+            // Obtenir la direction du téléphone
+            window.addEventListener('deviceorientationabsolute', function (event) {
+                var alpha = event.alpha;
+                var beta = event.beta;
+                var gamma = event.gamma;
 
-        // Faire tourner la boussole
-        northIndicator.setDirection(
-            new THREE.Vector3(Math.sin(THREE.Math.degToRad(alpha)), Math.sin(THREE.Math.degToRad(beta)), Math.cos(THREE.Math.degToRad(alpha)))
-      );
+                // Faire tourner la boussole
+                northIndicator.setDirection(
+                    new THREE.Vector3(
+                        Math.sin(THREE.Math.degToRad(alpha)),
+                        Math.sin(THREE.Math.degToRad(beta)),
+                        Math.cos(THREE.Math.degToRad(alpha))
+                    )
+                );
 
-      renderer.render(scene, camera);
-    });
-  } else {
-    console.error('L\'API de géolocalisation n\'est pas disponible sur ce navigateur.');
-  }
-  </script>
+                // Vérifier la direction en boucle
+                requestAnimationFrame(function () {
+                    renderer.render(scene, camera);
+                });
+            });
+        } else {
+            console.error("L'API de géolocalisation n'est pas disponible sur ce navigateur.");
+        }
+    </script>
+
 </body>
+
 </html>
