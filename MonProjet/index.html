@@ -2,72 +2,182 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Boussole en Three.js</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.122.0/build/three.js"></script>
+    <title>line test</title>
+    <script type="text/javascript" src="https://unpkg.com/dat.gui@0.7.6/build/dat.gui.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/maptalks/dist/maptalks.css">
+    <script type="text/javascript" src="https://unpkg.com/maptalks/dist/maptalks.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@maptalks/gl/dist/maptalksgl.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/three@0.138.0/build/three.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/lz-string@1.4.4/libs/lz-string.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/maptalks.three@latest/dist/maptalks.three.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0px;
+            height: 100%;
+            width: 100%;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="container"></div>
+    <div id="map"></div>
     <script>
-        // Initialiser le moteur de rendu et la scène
-        var renderer = new THREE.WebGLRenderer();
-        var scene = new THREE.Scene();
 
-        // Initialiser la caméra
-        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
+        var map = new maptalks.Map("map", {
+            center: [7.25, 43.7],
+            zoom: 13,
+            pitch: 50,
+            bearing: 0,
 
-        // Initialiser la sphère
-        var sphere = new THREE.SphereGeometry(1, 32, 32);
-        var material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-        var sphereMesh = new THREE.Mesh(sphere, material);
-        scene.add(sphereMesh);
+            centerCross: true,
+            doubleClickZoom: false,
+            baseLayer: new maptalks.TileLayer('tile', {
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                subdomains: ['a', 'b', 'c', 'd'],
+                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+            })
+        });
 
-        // Initialiser les axes X, Y et Z
-        var axes = new THREE.AxesHelper(2);
-        scene.add(axes);
 
-        // Initialiser la boussole
-        var northIndicator = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 2, 0xff0000);
-        scene.add(northIndicator);
-        var eastIndicator = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 2, 0x00ff00);
-        scene.add(eastIndicator);
+        // the ThreeLayer to draw buildings
+        var threeLayer = new maptalks.ThreeLayer('t', {
+            forceRenderOnMoving: true,
+            forceRenderOnRotating: true
+            // animation: true
+        });
 
-        // Définir la taille du rendu
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById("container").appendChild(renderer.domElement);
 
-        // Effectuer le rendu de la scène
-        renderer.render(scene, camera);
+        threeLayer.prepareToDraw = function (gl, scene, camera) {
+            var light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(0, 0, 0).normalize();
+            scene.add(light);
 
-        // Vérifier si l'API de géolocalisation est disponible
-        if ('ondeviceorientationabsolute' in window) {
-            // Obtenir la direction du téléphone
-            window.addEventListener('deviceorientationabsolute', function (event) {
-                var alpha = event.alpha;
-                var beta = event.beta;
-                var gamma = event.gamma;
+            addLines();
+        };
 
-                // Faire tourner la boussole
-                northIndicator.setDirection(
-                    new THREE.Vector3(
-                        Math.sin(THREE.Math.degToRad(alpha)),
-                        Math.sin(THREE.Math.degToRad(beta)),
-                        Math.cos(THREE.Math.degToRad(alpha))
-                    )
-                );
+        const sceneConfig = {
+            postProcess: {
+                enable: true,
+                antialias: { enable: true }
+            }
+        };
+        const groupLayer = new maptalks.GroupGLLayer('group', [threeLayer], { sceneConfig });
+        groupLayer.addTo(map);
 
-                // Vérifier la direction en boucle
-                requestAnimationFrame(function () {
-                    renderer.render(scene, camera);
+
+        var lines = [];
+        var material = new THREE.LineBasicMaterial({
+            linewidth: 1,
+            color: 0x00ffff,
+            // opacity: 0.8,
+            transparent: true
+        });
+        function addLines() {
+            fetch('./voies-principales-nca.geojson').then(function (res) {
+                return res.text();
+            }).then(function (geojson) {
+
+                var lineStrings = maptalks.GeoJSON.toGeometry(geojson);
+                var timer = 'generate line time';
+                console.time(timer);
+                for(const lineString of lineStrings){
+                    const road_name = lineString.properties.NOM;
+                    var line = threeLayer.toLine(lineString, { altitude: 0 }, material);
+                    //console.log(road_name)
+
+                    //tooltip test
+                    line.setToolTip(road_name, {
+                        showTimeout: 0,
+                        eventsPropagation: true,
+                        dx: 10
+                    });
+
+                    //infowindow test
+                    line.setInfoWindow({
+                        content: road_name,
+                        title: 'Nom de rue',
+                        animationDuration: 0,
+                        autoOpenOn: false
+                    });
+
+                    lines.push(line)
+
+                    //event test
+                    /*['click', 'mouseout', 'mouseover', 'mousedown', 'mouseup', 'dblclick', 'contextmenu'].forEach(function (eventType) {
+                        line.on(eventType, function (e) {
+                            //console.log(e.type, e);
+                            // console.log(this);
+                            if (e.type === 'mouseout') {
+                                this.setSymbol(material);
+                            }
+                            if (e.type === 'mouseover') {
+                                this.setSymbol(highlightmaterial);
+                            }
+                        });
+                    });*/
+                    
+                }
+                console.log('lines.length:', lines.length);
+                console.timeEnd(timer);
+                threeLayer.addMesh(lines);
+                //initGui();
+                threeLayer.config('animation', true);
+            })
+        }
+
+        /*function initGui() {
+            var params = {
+                add: true,
+                color: 0x00ffff,
+                show: true,
+                opacity: 1,
+                altitude: 0
+            };
+            var gui = new dat.GUI();
+            gui.add(params, 'add').onChange(function () {
+                if (params.add) {
+                    threeLayer.addMesh(lines);
+                } else {
+                    threeLayer.removeMesh(lines);
+                }
+            });
+            gui.addColor(params, 'color').name('line color').onChange(function () {
+                material.color.set(params.color);
+                lines.forEach(function (mesh) {
+                    mesh.setSymbol(material);
                 });
             });
-        } else {
-            console.error("L'API de géolocalisation n'est pas disponible sur ce navigateur.");
-        }
-    </script>
+            gui.add(params, 'opacity', 0, 1).onChange(function () {
+                material.opacity = params.opacity;
+                lines.forEach(function (mesh) {
+                    mesh.setSymbol(material);
+                });
+            });
+            gui.add(params, 'show').onChange(function () {
+                lines.forEach(function (mesh) {
+                    if (params.show) {
+                        mesh.show();
+                    } else {
+                        mesh.hide();
+                    }
+                });
+            });
+            gui.add(params, 'altitude', 0, 300).onChange(function () {
+                lines.forEach(function (mesh) {
+                    mesh.setAltitude(params.altitude);
+                });
+            });
+        }*/
 
+
+    </script>
 </body>
 
 </html>
