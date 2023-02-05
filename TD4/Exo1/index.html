@@ -129,12 +129,6 @@
 
 			animate();
 
- if(window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', function(orientation) {
-      if(duck !== undefined) duck.rotation.set(0, -orientation.alpha * (Math.PI / 180), 0) ; ;
-    }) ;
-  }
-
 		</script>
     
 </body>
