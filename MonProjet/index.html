@@ -57,13 +57,11 @@
             })
         });
 
-        // the ThreeLayer to draw buildings
         var threeLayer = new maptalks.ThreeLayer('t', {
             forceRenderOnMoving: true,
             forceRenderOnRotating: true
             // animation: true
         });
-
 
         threeLayer.prepareToDraw = function (gl, scene, camera) {
             var light = new THREE.DirectionalLight(0xffffff);
@@ -97,13 +95,7 @@
 
         function createMaterial(fillStyle) {
             return new THREE.PointsMaterial({
-                // size: 10,
                 sizeAttenuation: false,
-                // color: 'red',
-                // alphaTest: 0.5,
-                // vertexColors: THREE.VertexColors,
-                //  transparent: true
-                // color: 0xffffff,
                 size: 15,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
@@ -188,18 +180,16 @@
             }
             points = []
 
-            //trajet
             for(const line of trajet){
                 line.remove();
             }
 
-            //routes
             for(const line of road_lines){
                 line.remove();
             }
             
             const point = threeLayer.toPoint([distance_json.longitude,distance_json.latitude], { height: 0 }, point_material);
-            // tooltip test
+            
             point.setToolTip(distance_json.nom + " : " + distance_json.prix, {
                 showTimeout: 0,
                 eventsPropagation: true,
@@ -250,7 +240,6 @@
 
         button.addEventListener('click',remove);
 
-
         var crd;
         const position_material = createMaterial('red');
         
@@ -262,7 +251,7 @@
 
         function addPosition(){
                 const point = threeLayer.toPoint([crd.longitude,crd.latitude], { height: 0 }, position_material);
-                // tooltip test
+               
                 point.setToolTip("Ma position", {
                     showTimeout: 0,
                     eventsPropagation: true,
@@ -313,9 +302,7 @@
                 for(const lineString of lineStrings){
                     const road_name = lineString.properties.NOM;
                     var line = threeLayer.toLine(lineString, { altitude: 0 }, material);
-                    //console.log(road_name)
-
-                    //tooltip test
+                    
                     line.setToolTip("Rue : " + road_name, {
                         showTimeout: 0,
                         eventsPropagation: true,
