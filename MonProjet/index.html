@@ -19,14 +19,26 @@
         }
 
         #map {
-            width: 100%;
-            height: 100%;
+            width: 70%;
+            height: 70%;
             background-color: #000;
         }
     </style>
 </head>
 
 <body>
+    <div>
+        <select name="essence" id="essence-select">
+            <option value="">--Choisissez une option--</option>
+            <option value="Gazole">Gazole</option>
+            <option value="SP98">SP98</option>
+            <option value="E10">E10</option>
+            <option value="SP95">SP95</option>
+            <option value="E85">E85</option>
+            <option value="GPLc">GPLc</option>
+        </select>
+        <button id="button">Rechercher la station la plus proche</button>
+    </div>
     <div id="map"></div>
     <script>
 
@@ -45,7 +57,6 @@
             })
         });
 
-
         // the ThreeLayer to draw buildings
         var threeLayer = new maptalks.ThreeLayer('t', {
             forceRenderOnMoving: true,
@@ -58,9 +69,6 @@
             var light = new THREE.DirectionalLight(0xffffff);
             light.position.set(0, 0, 0).normalize();
             scene.add(light);
-
-            addLines();
-            addPoints();
         };
 
         const sceneConfig = {
@@ -69,69 +77,9 @@
                 antialias: { enable: true }
             }
         };
+
         const groupLayer = new maptalks.GroupGLLayer('group', [threeLayer], { sceneConfig });
         groupLayer.addTo(map);
-
-
-        var lines = [];
-        var material = new THREE.LineBasicMaterial({
-            linewidth: 1,
-            color: 0x00ffff,
-            // opacity: 0.8,
-            transparent: true
-        });
-        
-        function addLines() {
-            fetch('./voies-principales-nca.geojson').then(function (res) {
-                return res.text();
-            }).then(function (geojson) {
-                var lineStrings = maptalks.GeoJSON.toGeometry(geojson);
-                var timer = 'generate line time';
-                console.time(timer);
-                for(const lineString of lineStrings){
-                    const road_name = lineString.properties.NOM;
-                    var line = threeLayer.toLine(lineString, { altitude: 0 }, material);
-                    //console.log(road_name)
-
-                    //tooltip test
-                    line.setToolTip("Rue : " + road_name, {
-                        showTimeout: 0,
-                        eventsPropagation: true,
-                        dx: 10
-                    });
-
-                    //infowindow test
-                    line.setInfoWindow({
-                        content: road_name,
-                        title: 'Nom de rue',
-                        animationDuration: 0,
-                        autoOpenOn: false
-                    });
-
-                    lines.push(line)
-
-                    //event test
-                    /*['click', 'mouseout', 'mouseover', 'mousedown', 'mouseup', 'dblclick', 'contextmenu'].forEach(function (eventType) {
-                        line.on(eventType, function (e) {
-                            //console.log(e.type, e);
-                            // console.log(this);
-                            if (e.type === 'mouseout') {
-                                this.setSymbol(material);
-                            }
-                            if (e.type === 'mouseover') {
-                                this.setSymbol(highlightmaterial);
-                            }
-                        });
-                    });*/
-                    
-                }
-                console.log('lines.length:', lines.length);
-                console.timeEnd(timer);
-                threeLayer.addMesh(lines);
-                //initGui();
-                threeLayer.config('animation', true);
-            })
-        }
 
         function createTexture(fillStyle) {
             const size = 16;
@@ -156,10 +104,10 @@
                 // vertexColors: THREE.VertexColors,
                 //  transparent: true
                 // color: 0xffffff,
-                size: 10,
-                transparent: true, //使材质透明
+                size: 15,
+                transparent: true,
                 blending: THREE.AdditiveBlending,
-                depthTest: true, //深度测试关闭，不消去场景的不可见面
+                depthTest: true, 
                 depthWrite: false,
                 map: createTexture(fillStyle)
             });
@@ -172,18 +120,28 @@
             transparent: true
         });
 
-        function addPoints() {
-            var points = []
-            var bus_lines = []  
-            const point_material = createMaterial();
+        var points = []
 
+        var distance_json = {
+            distance : "",
+            latitude: "",
+            longitude: "",
+            nom:"",
+            prix:"",
+        }
+
+        const point_material = createMaterial();
+
+        function addPoints(type) {
             fetch('./prix-carburants-fichier-instantane-test-ods-copie.geojson').then(function (res) {
                 return res.json();
             }).then(function (geojson) {
-                console.log(geojson);
+                points = []
+                
+                //console.log(geojson);
                 for(const stop of geojson.features){
                     //console.log(stop)
-                    //if(stop.geometry.type != "LineString"){
+                    if(stop.properties.prix_nom == type && stop.properties.dep_name === "Alpes-Maritimes"){
                         const point = threeLayer.toPoint(stop.geometry.coordinates, { height: 0 }, point_material);
                         // tooltip test
                         point.setToolTip(stop.properties.prix_nom + " : " + stop.properties.prix_valeur, {
@@ -192,106 +150,134 @@
                             dx: 10
                         });
 
-                        //infowindow test
-                        point.setInfoWindow({
-                            content: stop.properties.prix_valeur,
-                            title: stop.properties.prix_nom,
-                            animationDuration: 0,
-                            autoOpenOn: false
-                        });
-                        //event test
-                        /*['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
-                            point.on(eventType, function (e) {
-                                console.log(e.type, e);
-                                // console.log(this);
-                                if (e.type === 'mouseout') {
-                                    //this.setSymbol(material);
-                                }
-                                if (e.type === 'mouseover') {
-                                    this.setSymbol(highlightmaterial);
-                                }
-                            });
-                        });*/
+                        fetch("https://api.mapbox.com/directions/v5/mapbox/driving/"+crd.longitude+"%2C"+crd.latitude+"%3B"+stop.geometry.coordinates[0]+"%2C"+stop.geometry.coordinates[1]+"?alternatives=false&geometries=geojson&overview=full&steps=false&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA").then(function (res) {
+                            return res.json();
+                        }).then(function (geojson) {
+                            //console.log(geojson.routes[0].distance);
+                            d = geojson.routes[0].distance;
+
+                            if(distance_json.distance === ""){
+                                distance_json.distance = d;
+                                distance_json.latitude = stop.geometry.coordinates[1];
+                                distance_json.longitude = stop.geometry.coordinates[0];
+                                distance_json.prix = stop.properties.prix_valeur;
+                                distance_json.nom = stop.properties.prix_nom;
+                            }
+                            else if(distance_json.distance > d){
+                                distance_json.distance = d;
+                                distance_json.latitude = stop.geometry.coordinates[1];
+                                distance_json.longitude = stop.geometry.coordinates[0];
+                                distance_json.prix = stop.properties.prix_valeur;
+                                distance_json.nom = stop.properties.prix_nom;
+                            }
+                        })
+                        
                         points.push(point);
-                    /*}
-                    else{
-                        const road_name = stop.properties.route_long_name;
-                        var line = threeLayer.toLine(stop, { altitude: 0 }, line_material);
-                        //console.log(road_name)
-
-                        //tooltip test
-                        line.setToolTip("Ligne : " + road_name, {
-                            showTimeout: 0,
-                            eventsPropagation: true,
-                            dx: 10
-                        });
-
-                        //infowindow test
-                        line.setInfoWindow({
-                            content: road_name,
-                            title: 'Nom de ligne',
-                            animationDuration: 0,
-                            autoOpenOn: false
-                        });
-
-                        bus_lines.push(line)
-                    }*/
+                    }
                 }
                 threeLayer.addMesh(points);
-                threeLayer.addMesh(bus_lines);
+            })
+        }
 
-                //initGui();
-                //animation();
+        function remove(){
+            for(const point of points){
+                point.remove();
+            }
+            const point = threeLayer.toPoint([distance_json.longitude,distance_json.latitude], { height: 0 }, point_material);
+            // tooltip test
+            point.setToolTip(distance_json.nom + " : " + distance_json.prix, {
+                showTimeout: 0,
+                eventsPropagation: true,
+                dx: 10
+            });
+
+            //infowindow test
+            point.setInfoWindow({
+                content: distance_json.prix,
+                title: distance_json.nom,
+                animationDuration: 0,
+                autoOpenOn: false
+            });
+
+            points.push(point)
+            
+            threeLayer.addMesh(points);
+            ajout_trajet();
+        }
+
+        function ajout_trajet(pos){
+            fetch("https://api.mapbox.com/directions/v5/mapbox/driving/"+crd.longitude+"%2C"+crd.latitude+"%3B"+distance_json.longitude+"%2C"+distance_json.latitude+"?alternatives=false&geometries=geojson&overview=full&steps=false&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA").then(function (res) {
+                return res.json();
+            }).then(function (geojson) {
+                var lineStrings = maptalks.GeoJSON.toGeometry(geojson.routes[0].geometry);
+                console.log(geojson);
+                var line = threeLayer.toLine(lineStrings, { altitude: 0 }, line_material);
+
+                line.setToolTip(distance_json.distance/1000 + " km" ,{
+                    showTimeout: 0,
+                    eventsPropagation: true,
+                    dx: 10
+                });
+                threeLayer.addMesh(line);
             })
         }
         
-            
+        const select = document.querySelector('#essence-select');
+        const button = document.getElementById('button');
+
+        select.addEventListener('change', (event) => {
+            //console.log(selectElement.options[selectElement.selectedIndex].text);
+            for(const point of points){
+                point.remove();
+            }
+            addPoints(select.options[select.selectedIndex].text);
+        });
+
+        button.addEventListener('click',remove);
 
 
-        /*function initGui() {
-            var params = {
-                add: true,
-                color: 0x00ffff,
-                show: true,
-                opacity: 1,
-                altitude: 0
-            };
-            var gui = new dat.GUI();
-            gui.add(params, 'add').onChange(function () {
-                if (params.add) {
-                    threeLayer.addMesh(lines);
-                } else {
-                    threeLayer.removeMesh(lines);
-                }
-            });
-            gui.addColor(params, 'color').name('line color').onChange(function () {
-                material.color.set(params.color);
-                lines.forEach(function (mesh) {
-                    mesh.setSymbol(material);
-                });
-            });
-            gui.add(params, 'opacity', 0, 1).onChange(function () {
-                material.opacity = params.opacity;
-                lines.forEach(function (mesh) {
-                    mesh.setSymbol(material);
-                });
-            });
-            gui.add(params, 'show').onChange(function () {
-                lines.forEach(function (mesh) {
-                    if (params.show) {
-                        mesh.show();
-                    } else {
-                        mesh.hide();
-                    }
-                });
-            });
-            gui.add(params, 'altitude', 0, 300).onChange(function () {
-                lines.forEach(function (mesh) {
-                    mesh.setAltitude(params.altitude);
-                });
-            });
-        }*/
+        var crd;
+        const position_material = createMaterial('red');
+        
+        function success(pos) {
+            crd = pos.coords;
+            //console.log(crd)
+            addPosition();
+        }
 
+        function addPosition(){
+                const point = threeLayer.toPoint([crd.longitude,crd.latitude], { height: 0 }, position_material);
+                // tooltip test
+                point.setToolTip("Ma position", {
+                    showTimeout: 0,
+                    eventsPropagation: true,
+                    dx: 10
+                });
+
+                //infowindow test
+                point.setInfoWindow({
+                    content: crd,
+                    title: "Ma position",
+                    animationDuration: 0,
+                    autoOpenOn: false
+                });
+
+                threeLayer.addMesh(point);
+            }
+
+        function error(err) {
+            console.warn(`ERREUR (${err.code}): ${err.message}`);
+        }
+
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        });
 
     </script>
 </body>
