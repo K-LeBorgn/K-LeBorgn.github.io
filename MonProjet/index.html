@@ -183,7 +183,7 @@
                 console.log(geojson);
                 for(const stop of geojson.features){
                     //console.log(stop)
-                    if(stop.geometry.type != "LineString"){
+                    //if(stop.geometry.type != "LineString"){
                         const point = threeLayer.toPoint(stop.geometry.coordinates, { height: 0 }, point_material);
                         // tooltip test
                         point.setToolTip(stop.properties.prix_nom + " : " + stop.properties.prix_valeur, {
@@ -200,7 +200,7 @@
                             autoOpenOn: false
                         });
                         //event test
-                        ['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
+                        /*['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
                             point.on(eventType, function (e) {
                                 console.log(e.type, e);
                                 // console.log(this);
@@ -211,9 +211,9 @@
                                     this.setSymbol(highlightmaterial);
                                 }
                             });
-                        });
+                        });*/
                         points.push(point);
-                    }
+                    /*}
                     else{
                         const road_name = stop.properties.route_long_name;
                         var line = threeLayer.toLine(stop, { altitude: 0 }, line_material);
@@ -235,7 +235,7 @@
                         });
 
                         bus_lines.push(line)
-                    }
+                    }*/
                 }
                 threeLayer.addMesh(points);
                 threeLayer.addMesh(bus_lines);
