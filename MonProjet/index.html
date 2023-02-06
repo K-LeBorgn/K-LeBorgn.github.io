@@ -137,7 +137,10 @@
                 return res.json();
             }).then(function (geojson) {
                 points = []
-                
+                for(const line of trajet){
+                    line.remove();
+                }
+                distance_json.distance = ""
                 //console.log(geojson);
                 for(const stop of geojson.features){
                     //console.log(stop)
@@ -183,6 +186,18 @@
             for(const point of points){
                 point.remove();
             }
+            points = []
+
+            //trajet
+            for(const line of trajet){
+                line.remove();
+            }
+
+            //routes
+            for(const line of road_lines){
+                line.remove();
+            }
+            
             const point = threeLayer.toPoint([distance_json.longitude,distance_json.latitude], { height: 0 }, point_material);
             // tooltip test
             point.setToolTip(distance_json.nom + " : " + distance_json.prix, {
@@ -191,24 +206,19 @@
                 dx: 10
             });
 
-            //infowindow test
-            point.setInfoWindow({
-                content: distance_json.prix,
-                title: distance_json.nom,
-                animationDuration: 0,
-                autoOpenOn: false
-            });
-
             points.push(point)
             
             threeLayer.addMesh(points);
             ajout_trajet();
         }
 
+        var trajet = []
+
         function ajout_trajet(pos){
             fetch("https://api.mapbox.com/directions/v5/mapbox/driving/"+crd.longitude+"%2C"+crd.latitude+"%3B"+distance_json.longitude+"%2C"+distance_json.latitude+"?alternatives=false&geometries=geojson&overview=full&steps=false&access_token=pk.eyJ1IjoiY3YwNiIsImEiOiJjajg2MmpzYjcwbWdnMzNsc2NzM2l4eW0yIn0.TfDJipR5II7orUZaC848YA").then(function (res) {
                 return res.json();
             }).then(function (geojson) {
+                trajet = []
                 var lineStrings = maptalks.GeoJSON.toGeometry(geojson.routes[0].geometry);
                 console.log(geojson);
                 var line = threeLayer.toLine(lineStrings, { altitude: 0 }, line_material);
@@ -218,7 +228,8 @@
                     eventsPropagation: true,
                     dx: 10
                 });
-                threeLayer.addMesh(line);
+                trajet.push(line)
+                threeLayer.addMesh(trajet);
             })
         }
         
@@ -230,6 +241,10 @@
             for(const point of points){
                 point.remove();
             }
+            for(const line of road_lines){
+                line.remove();
+            }
+            addLines();
             addPoints(select.options[select.selectedIndex].text);
         });
 
@@ -278,6 +293,41 @@
         document.addEventListener('DOMContentLoaded', function() {
             navigator.geolocation.getCurrentPosition(success, error, options);
         });
+
+
+
+        var road_lines = [];
+        var material = new THREE.LineBasicMaterial({
+            linewidth: 1,
+            color: 0x00ffff,
+             opacity: 0.8,
+            transparent: true
+        });
+        
+        function addLines() {
+            fetch('./voies-principales-nca.geojson').then(function (res) {
+                return res.text();
+            }).then(function (geojson) {
+                road_lines = []
+                var lineStrings = maptalks.GeoJSON.toGeometry(geojson);
+                for(const lineString of lineStrings){
+                    const road_name = lineString.properties.NOM;
+                    var line = threeLayer.toLine(lineString, { altitude: 0 }, material);
+                    //console.log(road_name)
+
+                    //tooltip test
+                    line.setToolTip("Rue : " + road_name, {
+                        showTimeout: 0,
+                        eventsPropagation: true,
+                        dx: 10
+                    });
+
+                    road_lines.push(line)
+                }
+                threeLayer.addMesh(road_lines);
+                threeLayer.config('animation', true);
+            })
+        }
 
     </script>
 </body>
