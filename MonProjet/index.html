@@ -132,6 +132,7 @@
                 threeLayer.config('animation', true);
             })
         }
+
         function createTexture(fillStyle) {
             const size = 16;
             const canvasDom = document.createElement('canvas');
@@ -142,7 +143,7 @@
             ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
             ctx.fill();
             const texture = new THREE.Texture(canvasDom);
-            texture.needsUpdate = true; //使用贴图时进行更新
+            texture.needsUpdate = true;
             return texture;
         }
 
@@ -176,7 +177,7 @@
             var bus_lines = []  
             const point_material = createMaterial();
 
-            fetch('./lignes_reseau_urbain.geojson').then(function (res) {
+            fetch('./prix-carburants-fichier-instantane-test-ods-copie.geojson').then(function (res) {
                 return res.json();
             }).then(function (geojson) {
                 console.log(geojson);
@@ -185,7 +186,7 @@
                     if(stop.geometry.type != "LineString"){
                         const point = threeLayer.toPoint(stop.geometry.coordinates, { height: 0 }, point_material);
                         // tooltip test
-                        point.setToolTip("Arrêt : " + stop.properties.name, {
+                        point.setToolTip(stop.properties.prix_nom + " : " + stop.properties.prix_valeur, {
                             showTimeout: 0,
                             eventsPropagation: true,
                             dx: 10
@@ -193,24 +194,24 @@
 
                         //infowindow test
                         point.setInfoWindow({
-                            content: stop.properties.information,
-                            title: stop.properties.name,
+                            content: stop.properties.prix_valeur,
+                            title: stop.properties.prix_nom,
                             animationDuration: 0,
                             autoOpenOn: false
                         });
                         //event test
-                        /*['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
+                        ['click', 'mouseout', 'mouseover'].forEach(function (eventType) {
                             point.on(eventType, function (e) {
                                 console.log(e.type, e);
                                 // console.log(this);
                                 if (e.type === 'mouseout') {
-                                    this.setSymbol(material);
+                                    //this.setSymbol(material);
                                 }
                                 if (e.type === 'mouseover') {
                                     this.setSymbol(highlightmaterial);
                                 }
                             });
-                        });*/
+                        });
                         points.push(point);
                     }
                     else{
