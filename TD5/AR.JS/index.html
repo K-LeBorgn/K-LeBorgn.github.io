@@ -17,16 +17,13 @@
 <body>
   <a-scene embedded arjs>
     <a-marker preset="hiro">
-      <a-entity position="0 0 -1.6" scale="0.15 0.15 0.15"
-        gltf-model="./Soldier.glb"></a-entity>
+      <a-box position="0 0 0" rotation="0 45 0" color="#4CC3D9"></a-box>
     </a-marker>
     <a-entity id="localizedEntity" material='color: red' geometry='primitive: box' scale="10 10 10"></a-entity>
     <a-camera gps-new-camera='gpsMinDistance: 5'></a-camera>
   </a-scene>
   <script>
-    document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+    document.addEventListener("DOMContentLoaded",function () {
       navigator.geolocation.getCurrentPosition(function (position) {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
@@ -34,9 +31,7 @@
 
         entity.setAttribute("gps-new-entity-place", `latitude: ${lat}; longitude: ${lng}`)
       })
-    },
-    false
-  )
+    })
   </script>
 </body>
 
