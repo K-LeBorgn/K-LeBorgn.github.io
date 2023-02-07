@@ -23,7 +23,21 @@
     <a-entity id="localizedEntity" material='color: red' geometry='primitive: box' scale="10 10 10"></a-entity>
     <a-camera gps-new-camera='gpsMinDistance: 5'></a-camera>
   </a-scene>
-  <script src="script.js"></script>
+  <script>
+    document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+        const entity = document.getElementById("localizedEntity")
+
+        entity.setAttribute("gps-new-entity-place", `latitude: ${lat}; longitude: ${lng}`)
+      })
+    },
+    false
+  )
+  </script>
 </body>
 
 </html>
